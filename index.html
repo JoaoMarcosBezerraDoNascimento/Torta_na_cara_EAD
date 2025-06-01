@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Index</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background-color: #f0f0f0;
+    }
+
+    h1 {
+      font-size: 2em;
+      color: #333;
+    }
+
+    button {
+      margin-right: 10px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background-color: white;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Jogo Torta na Cara</h1>
+
+  <button onclick="entrarJogo()">Entrar no jogo</button>
+  <button onclick="iniciarContador()">Iniciar contador</button>
+
+  <h2>Jogadores:</h2>
+  <ul id="listaJogadores"></ul>
+
+  <script>
+    function atualizarLista() {
+      const jogadores = JSON.parse(localStorage.getItem('jogadores')) || [];
+      const heartbeats = JSON.parse(localStorage.getItem('heartbeats')) || {};
+      const now = Date.now();
+      const TIMEOUT = 15000;
+
+      const ul = document.getElementById('listaJogadores');
+      ul.innerHTML = '';
+
+      const jogadoresComStatus = jogadores.map((j, i) => ({
+        ...j,
+        index: i,
+        ativo: heartbeats[i] && (now - heartbeats[i]) <= TIMEOUT
+      }));
+
+      const jogadoresOrdenados = jogadoresComStatus
+        .filter(j => j.tempo !== null && j.ativo)
+        .sort((a, b) => a.tempo - b.tempo);
+
+      const jogadoresNaoJogados = jogadoresComStatus
+        .filter(j => j.tempo === null && j.ativo);
+
+      const todosVisiveis = [...jogadoresOrdenados, ...jogadoresNaoJogados];
+
+      const medalhas = ['🥇', '🥈', '🥉'];
+
+      todosVisiveis.forEach((j, pos) => {
+        const li = document.createElement('li');
+        const ranking = j.tempo !== null && pos < 3 ? `${medalhas[pos]} ` : '';
+        li.textContent = `${ranking}Jogador ${j.index + 1} - Tempo: ${j.tempo !== null ? j.tempo + ' ms' : '---'}`;
+        ul.appendChild(li);
+      });
+    }
+
+    function entrarJogo() {
+      const jogadores = JSON.parse(localStorage.getItem('jogadores')) || [];
+      jogadores.push({ tempo: null });
+      localStorage.setItem('jogadores', JSON.stringify(jogadores));
+      localStorage.setItem('ultimoJogador', jogadores.length - 1);
+      window.open('Botao_Tela.html', '_blank');
+      atualizarLista();
+    }
+
+    function iniciarContador() {
+      localStorage.setItem('iniciarContador', Date.now());
+    }
+
+    window.addEventListener('storage', atualizarLista);
+    setInterval(atualizarLista, 5000);
+    atualizarLista();
+  </script>
+</body>
+</html>

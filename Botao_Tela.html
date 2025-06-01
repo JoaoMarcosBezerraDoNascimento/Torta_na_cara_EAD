@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Botão</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    #botao {
+      width: 100%;
+      height: 100%;
+      font-size: 3rem;
+      font-weight: bold;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    #botao:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <button id="botao" disabled>Carregando...</button>
+
+  <script>
+    const botao = document.getElementById('botao');
+    const jogadorIndex = parseInt(localStorage.getItem('ultimoJogador'), 10);
+    let tempoInicial;
+
+    botao.textContent = `Jogador ${jogadorIndex + 1} - Aguardando contador...`;
+
+    // Heartbeat para indicar jogador ativo
+    setInterval(() => {
+      const heartbeats = JSON.parse(localStorage.getItem('heartbeats')) || {};
+      heartbeats[jogadorIndex] = Date.now();
+      localStorage.setItem('heartbeats', JSON.stringify(heartbeats));
+    }, 5000);
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'iniciarContador') {
+        iniciarContagem();
+      }
+    });
+
+    function iniciarContagem() {
+      botao.disabled = true;
+      botao.textContent = `Jogador ${jogadorIndex + 1} - Aguardando...`;
+
+      setTimeout(() => {
+        tempoInicial = performance.now();
+        botao.disabled = false;
+        botao.textContent = `Jogador ${jogadorIndex + 1} - CLIQUE!`;
+      }, 5000);
+    }
+
+    function registrarTempo() {
+      const tempoFinal = performance.now();
+      const tempoReacao = Math.round(tempoFinal - tempoInicial);
+
+      let jogadores = JSON.parse(localStorage.getItem('jogadores')) || [];
+      if (jogadores[jogadorIndex]) {
+        jogadores[jogadorIndex].tempo = tempoReacao;
+        localStorage.setItem('jogadores', JSON.stringify(jogadores));
+      }
+
+      botao.disabled = true;
+      botao.textContent = `Jogador ${jogadorIndex + 1} - Aguardando contador...`;
+    }
+
+    botao.onclick = registrarTempo;
+  </script>
+</body>
+</html>
